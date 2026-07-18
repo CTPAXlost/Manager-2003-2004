@@ -881,7 +881,7 @@ func _create_pitch_slots(pitch: TacticsPitch) -> void:
         pitch_slots[str(slot_data.get("id", ""))] = slot
         var player_id = int(lineup.get(str(slot_data.get("id", "")), -1))
         if player_id >= 0:
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             var fit_description = _fit_description(player, slot_data.get("accepted", []))
             var personal_summary = _instruction_summary(player_id)
             if not personal_summary.is_empty():
@@ -1187,8 +1187,8 @@ func _refresh_pitch_slots() -> void:
         var player_id = int(lineup.get(slot_id, -1))
         if player_id >= 0:
             var slot_data = _formation_slot(slot_id)
-            var player = _player(player_id)
-            slot.set_player(player, _effective_rating_for_slot(player, slot_data.get("accepted", [])), _fit_description(player, slot_data.get("accepted", [])))
+            var player = _player_with_visual_context(player_id, selected_team_id)
+            slot.set_player(_player_with_visual_context(player_id, selected_team_id), _effective_rating_for_slot(player, slot_data.get("accepted", [])), _fit_description(player, slot_data.get("accepted", [])))
         else:
             slot.set_player({})
     var power = screen_root.find_child("PowerLabel", true, false) as Label
@@ -1469,7 +1469,7 @@ func _apply_segment_fatigue(start_minute: int, end_minute: int) -> void:
         elif style == "Глубокая оборона + контратака": style_drain = -0.20
         for raw_id in _team_on_pitch_player_ids(team_id):
             var player_id = int(raw_id)
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             var role = _player_match_role(team_id, player_id)
             var role_drain = 0.18 if role in ["RW", "LW", "RM", "LM", "RWB", "LWB"] else 0.0
             var personal = _player_instruction_data(player_id)
@@ -1556,7 +1556,7 @@ func _post_match_condition_recovery() -> void:
     for team_id in [int(current_match.get("home", -1)), int(current_match.get("away", -1))]:
         for raw_id in _match_squad(team_id):
             var player_id = int(raw_id)
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             if _is_player_injured(player):
                 player["condition"] = min(int(player.get("condition", 100)), 72)
                 continue
@@ -1751,7 +1751,7 @@ func _finalize_match_ratings() -> void:
         var conceded = away_score if side == "home" else home_score
         for raw_id in current_match.get("%s_lineup" % side, []):
             var player_id = int(raw_id)
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             var value = float(ratings.get(str(player_id), 6.5))
             if scored > conceded: value += 0.25
             elif scored < conceded: value -= 0.20
@@ -1769,6 +1769,7 @@ func _finalize_match_ratings() -> void:
         var owner_id = _club_for_player(player_id)
         if owner_id >= 0:
             stats["club_id"] = owner_id
+            stats["club_name"] = _team_name(owner_id)
         player_stats[str(player_id)] = stats
         _add_competition_rating(player_id, value)
         var player = _player(player_id)
@@ -2148,7 +2149,7 @@ func _render_substitution_dialog(dialog: Window) -> void:
                 status = "УДАЛЁН · заменить нельзя"
             elif active_player_id in (current_match.get(injury_key, []) as Array):
                 status = "ТРАВМА · требуется замена"
-            target.set_player(active_player, _effective_rating_for_slot(active_player, slot_data.get("accepted", [])), status)
+            target.set_player(_player_with_visual_context(int(active_player.get("id", -1)), selected_team_id), _effective_rating_for_slot(active_player, slot_data.get("accepted", [])), status)
         target.player_dropped.connect(_stage_substitution.bind(dialog))
         target.slot_pressed.connect(_pending_substitution_slot_clicked.bind(dialog))
         active_grid.add_child(target)
@@ -2435,7 +2436,10 @@ func _add_statistics_tab(tabs: TabContainer, tab_name: String, category: String,
         row.add_theme_stylebox_override("panel", _panel_style(Color("12374a") if _club_for_player(player_id) == selected_team_id else Color("0d1f2d"), Color("24485c"), 7, 1))
         var h = HBoxContainer.new(); h.add_theme_constant_override("separation", 8); row.add_child(h)
         var row_club_id = int(row_data.get("club_id", _club_for_player(player_id)))
-        var base_values = [[str(i + 1), 42], [_player(player_id).get("name", "Игрок"), 260], [_team_name(row_club_id), 210], [str(stats.get("apps", 0)), 55]]
+        var row_club_name = str(row_data.get("club_name", stats.get("club_name", "")))
+        if row_club_name.is_empty():
+            row_club_name = _team_name(row_club_id)
+        var base_values = [[str(i + 1), 42], [_player(player_id).get("name", "Игрок"), 260], [row_club_name, 210], [str(stats.get("apps", 0)), 55]]
         for value in base_values:
             var label = _label(str(value[0]), 13, colors.text); label.custom_minimum_size.x = value[1]; h.add_child(label)
         if category == "cards":
@@ -3969,7 +3973,7 @@ func _sanitize_lineup() -> void:
     lineup = repaired
 
 func _empty_player_stat() -> Dictionary:
-    return {"apps": 0, "goals": 0, "assists": 0, "clean_sheets": 0, "yellow": 0, "red": 0, "rating_sum": 0.0, "rating_apps": 0, "club_id": -1}
+    return {"apps": 0, "goals": 0, "assists": 0, "clean_sheets": 0, "yellow": 0, "red": 0, "rating_sum": 0.0, "rating_apps": 0, "club_id": -1, "club_name": ""}
 
 func _reset_player_stats() -> void:
     player_stats.clear()
@@ -3988,6 +3992,8 @@ func _ensure_player_stats() -> void:
         if not stats.has("rating_sum"): stats["rating_sum"] = 0.0
         if not stats.has("club_id") or int(stats.get("club_id", -1)) < 0:
             stats["club_id"] = _club_for_player(int(key))
+        if (not stats.has("club_name") or str(stats.get("club_name", "")).is_empty()) and int(stats.get("club_id", -1)) >= 0:
+            stats["club_name"] = _team_name(int(stats.get("club_id", -1)))
         player_stats[stat_key] = stats
 
 func _add_player_stat(player_id: int, field: String, amount: int) -> void:
@@ -4001,6 +4007,7 @@ func _add_player_stat(player_id: int, field: String, amount: int) -> void:
     var owner_id = _club_for_player(player_id)
     if owner_id >= 0:
         stats["club_id"] = owner_id
+        stats["club_name"] = _team_name(owner_id)
     player_stats[key] = stats
 
     if owner_id >= 0:
@@ -4011,6 +4018,7 @@ func _add_player_stat(player_id: int, field: String, amount: int) -> void:
             var comp_player_stats: Dictionary = comp_stats.get(key, _empty_player_stat())
             comp_player_stats[field] = int(comp_player_stats.get(field, 0)) + amount
             comp_player_stats["club_id"] = owner_id
+            comp_player_stats["club_name"] = _team_name(owner_id)
             comp_stats[key] = comp_player_stats
             all_comp_stats[competition_id] = comp_stats
             game_state["competition_player_stats"] = all_comp_stats
@@ -4032,6 +4040,7 @@ func _add_competition_rating(player_id: int, rating: float) -> void:
     stats["rating_sum"] = float(stats.get("rating_sum", 0.0)) + rating
     stats["rating_apps"] = int(stats.get("rating_apps", 0)) + 1
     stats["club_id"] = owner_id
+    stats["club_name"] = _team_name(owner_id)
     comp_stats[key] = stats
     all_comp_stats[competition_id] = comp_stats
     game_state["competition_player_stats"] = all_comp_stats
@@ -4071,10 +4080,12 @@ func _repair_competition_statistics(competition_id: String, table_data: Dictiona
             var key = str(player_id)
             var owned_stats: Dictionary = comp_stats.get(key, _empty_player_stat())
             owned_stats["club_id"] = team_id
+            owned_stats["club_name"] = _team_name(team_id)
             comp_stats[key] = owned_stats
             var global_owned: Dictionary = player_stats.get(key, _empty_player_stat())
             if int(global_owned.get("club_id", -1)) < 0:
                 global_owned["club_id"] = team_id
+                global_owned["club_name"] = _team_name(team_id)
             player_stats[key] = global_owned
 
         var total_apps = 0
@@ -4114,7 +4125,7 @@ func _repair_competition_statistics(competition_id: String, table_data: Dictiona
             var apps = int(stats.get("apps", 0))
             var rating_apps = int(stats.get("rating_apps", 0))
             if apps > rating_apps:
-                var player = _player(player_id)
+                var player = _player_with_visual_context(player_id, selected_team_id)
                 var estimated = 6.05 + (points_rate - 0.38) * 1.15 + (float(player.get("rating", 65)) - 70.0) / 55.0
                 estimated = clamp(estimated, 5.55, 7.65)
                 var missing_ratings = apps - rating_apps
@@ -4483,6 +4494,7 @@ func _record_quick_rating(player_id: int, goals_for: int, goals_against: int) ->
     var owner_id = _club_for_player(player_id)
     if owner_id >= 0:
         stats["club_id"] = owner_id
+        stats["club_name"] = _team_name(owner_id)
     player_stats[str(player_id)] = stats
     _add_competition_rating(player_id, rating)
     var apps = int(player.get("career_rating_apps", 0))
@@ -4524,7 +4536,7 @@ func _clean_all_squad_duplicates() -> void:
         var local_names: Dictionary = {}
         for raw_id in club_squads.get(team_key, []):
             var player_id = int(raw_id)
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             if player.is_empty() or global_ids.has(str(player_id)):
                 continue
             var normalized_name = str(player.get("name", "")).strip_edges().to_lower()
@@ -5051,8 +5063,8 @@ func _formation_slot_moved(slot_id: String, normalized_position: Vector2) -> voi
             moved_slot.set_role(role)
             var player_id = int(lineup.get(slot_id, -1))
             if player_id >= 0:
-                var player = _player(player_id)
-                moved_slot.set_player(player, _effective_rating_for_slot(player, [role]), _fit_description(player, [role]))
+                var player = _player_with_visual_context(player_id, selected_team_id)
+                moved_slot.set_player(_player_with_visual_context(int(player.get("id", -1)), selected_team_id), _effective_rating_for_slot(player, [role]), _fit_description(player, [role]))
         notice_text = "Позиция перемещена. Новая роль на поле: %s." % role
 
 func _slot_coordinates(slot_data: Dictionary) -> Vector2:
@@ -5339,7 +5351,7 @@ func _sorted_statistics_for_comp(category: String, competition_id: String, goalk
         var club_id = int(stats.get("club_id", _club_for_player(pid)))
         if club_id < 0:
             club_id = int(database_club_index.get(str(pid), -1))
-        rows.append({"player_id": pid, "stats": stats, "club_id": club_id})
+        rows.append({"player_id": pid, "stats": stats, "club_id": club_id, "club_name": str(stats.get("club_name", _team_name(club_id)))})
     rows.sort_custom(func(a, b):
         var sa: Dictionary = a["stats"]
         var sb: Dictionary = b["stats"]
@@ -5769,7 +5781,7 @@ func _maybe_generate_transfer_offer() -> void:
         if rng.randf() > 0.07: return
         for raw_id in _squad(selected_team_id):
             var player_id = int(raw_id)
-            var player = _player(player_id)
+            var player = _player_with_visual_context(player_id, selected_team_id)
             if not _is_important_player(player_id) and int(player.get("rating", 0)) >= 76: candidates.append(player_id)
     if candidates.is_empty(): return
     var player_id = int(candidates[rng.randi_range(0, candidates.size() - 1)])
@@ -6004,6 +6016,16 @@ func _playable_teams() -> Array:
         if bool(team.get("playable", false)):
             result.append(team)
     return result
+
+func _player_with_visual_context(player_id: int, team_id: int) -> Dictionary:
+    var player = _player(player_id).duplicate(true)
+    if player.is_empty():
+        return {}
+    player["club_id"] = team_id
+    player["club_name"] = _team_name(team_id)
+    player["competition"] = str(_team(team_id).get("competition", ""))
+    player["premium_visual"] = str(player.get("club_name", "")) in ["Реал Мадрид", "Барселона"]
+    return player
 
 func _team(team_id: int) -> Dictionary:
     return teams_by_id.get(str(team_id), {})

@@ -17,9 +17,8 @@ var title_label: Label
 var name_label: Label
 var info_label: Label
 var fit_label: Label
-var body: HBoxContainer
+var body: VBoxContainer
 var portrait: PlayerPortrait
-var text_box: VBoxContainer
 var normal_style: StyleBoxFlat
 var hover_style: StyleBoxFlat
 var warning_style: StyleBoxFlat
@@ -31,83 +30,110 @@ var editor_mode = false
 var moving_slot = false
 var is_selected = false
 var action_button: Button
+var portrait_holder: CenterContainer
+var top_row: HBoxContainer
 
 func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(168, 124)
+    custom_minimum_size = Vector2(176, 166)
     mouse_filter = Control.MOUSE_FILTER_STOP
     mouse_force_pass_scroll_events = false
     mouse_default_cursor_shape = Control.CURSOR_DRAG
     focus_mode = Control.FOCUS_NONE
 
-    normal_style = _make_style(Color(0.025, 0.065, 0.09, 0.97), Color("b98a35"), 1)
-    hover_style = _make_style(Color(0.055, 0.19, 0.20, 0.98), Color("40e0ff"), 2)
+    normal_style = _make_style(Color(0.028, 0.055, 0.085, 0.98), Color("c79434"), 1)
+    hover_style = _make_style(Color(0.055, 0.18, 0.22, 0.98), Color("40e0ff"), 2)
+    selected_style = _make_style(Color(0.08, 0.22, 0.28, 0.98), Color("74f3c0"), 2)
     warning_style = _make_style(Color(0.19, 0.105, 0.08, 0.98), Color("ffc857"), 2)
     edit_style = _make_style(Color(0.16, 0.12, 0.035, 0.98), Color("ffc857"), 2)
     add_theme_stylebox_override("panel", normal_style)
 
-    body = HBoxContainer.new()
-    body.add_theme_constant_override("separation", 5)
+    body = VBoxContainer.new()
     body.alignment = BoxContainer.ALIGNMENT_CENTER
+    body.add_theme_constant_override("separation", 2)
     body.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(body)
 
-    portrait = PlayerPortrait.new()
-    portrait.setup({})
-    body.add_child(portrait)
+    top_row = HBoxContainer.new()
+    top_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    top_row.add_theme_constant_override("separation", 4)
+    body.add_child(top_row)
 
-    text_box = VBoxContainer.new()
-    text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    text_box.add_theme_constant_override("separation", 0)
-    text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    body.add_child(text_box)
+    var left_space = Control.new()
+    left_space.custom_minimum_size = Vector2(18, 1)
+    left_space.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    top_row.add_child(left_space)
 
     title_label = Label.new()
     title_label.text = role_name
     title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    title_label.add_theme_font_size_override("font_size", 11)
-    title_label.add_theme_color_override("font_color", Color("e2bd61"))
+    title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    title_label.add_theme_font_size_override("font_size", 12)
+    title_label.add_theme_color_override("font_color", Color("efd382"))
     title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    text_box.add_child(title_label)
+    top_row.add_child(title_label)
+
+    action_button = Button.new()
+    action_button.text = "↔"
+    action_button.tooltip_text = "Выбрать этого игрока или эту позицию для замены"
+    action_button.custom_minimum_size = Vector2(24, 24)
+    action_button.focus_mode = Control.FOCUS_NONE
+    action_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+    action_button.add_theme_font_size_override("font_size", 12)
+    action_button.pressed.connect(func(): slot_pressed.emit(slot_id))
+    top_row.add_child(action_button)
+
+    portrait_holder = CenterContainer.new()
+    portrait_holder.custom_minimum_size = Vector2(0, 84)
+    portrait_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    body.add_child(portrait_holder)
+
+    portrait = PlayerPortrait.new()
+    portrait.setup({})
+    portrait_holder.add_child(portrait)
 
     name_label = Label.new()
     name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
     name_label.add_theme_font_size_override("font_size", 12)
-    name_label.add_theme_color_override("font_color", Color("e8f3f8"))
+    name_label.add_theme_color_override("font_color", Color("edf6fb"))
     name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    text_box.add_child(name_label)
+    body.add_child(name_label)
 
     info_label = Label.new()
     info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     info_label.add_theme_font_size_override("font_size", 11)
-    info_label.add_theme_color_override("font_color", Color("c5d5dc"))
+    info_label.add_theme_color_override("font_color", Color("d8c17b"))
     info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    text_box.add_child(info_label)
+    body.add_child(info_label)
 
     fit_label = Label.new()
     fit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     fit_label.add_theme_font_size_override("font_size", 9)
-    fit_label.add_theme_color_override("font_color", Color("d7aa48"))
+    fit_label.add_theme_color_override("font_color", Color("e0e9ef"))
     fit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    text_box.add_child(fit_label)
-
-    action_button = Button.new()
-    action_button.text = "↔"
-    action_button.tooltip_text = "Выбрать этого игрока или эту позицию для замены"
-    action_button.custom_minimum_size = Vector2(26, 28)
-    action_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-    action_button.focus_mode = Control.FOCUS_NONE
-    action_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-    action_button.add_theme_font_size_override("font_size", 14)
-    action_button.pressed.connect(func(): slot_pressed.emit(slot_id))
-    body.add_child(action_button)
+    fit_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    body.add_child(fit_label)
 
     set_player({})
 
+func _make_style(background: Color, border: Color, width: int) -> StyleBoxFlat:
+    var style = StyleBoxFlat.new()
+    style.bg_color = background
+    style.border_color = border
+    style.set_border_width_all(width)
+    style.set_corner_radius_all(10)
+    style.content_margin_left = 6
+    style.content_margin_right = 6
+    style.content_margin_top = 6
+    style.content_margin_bottom = 6
+    style.shadow_color = Color(0, 0, 0, 0.35)
+    style.shadow_size = 3
+    return style
 
+var selected_style: StyleBoxFlat
 
 func set_empty_message(name_text: String, info_text: String, status_text = "") -> void:
     player_data = {}
@@ -131,7 +157,7 @@ func set_role(new_role: String) -> void:
     role_name = new_role
     accepted = [new_role]
     if title_label != null:
-        title_label.text = new_role
+        title_label.text = role_name
 
 func set_editor_mode(value: bool) -> void:
     editor_mode = value
@@ -145,18 +171,6 @@ func set_editor_mode(value: bool) -> void:
     if editor_mode:
         tooltip_text = "Режим свободной схемы: зажмите карточку и переместите её в любую точку поля"
 
-func _make_style(background: Color, border: Color, width: int) -> StyleBoxFlat:
-    var style = StyleBoxFlat.new()
-    style.bg_color = background
-    style.border_color = border
-    style.set_border_width_all(width)
-    style.set_corner_radius_all(9)
-    style.content_margin_left = 7
-    style.content_margin_right = 7
-    style.content_margin_top = 5
-    style.content_margin_bottom = 5
-    return style
-
 func set_player(player: Dictionary, calculated_rating = -1, calculated_fit_text = "") -> void:
     player_data = player.duplicate(true)
     player_id = int(player_data.get("id", -1))
@@ -166,8 +180,8 @@ func set_player(player: Dictionary, calculated_rating = -1, calculated_fit_text 
     fit_text = str(calculated_fit_text)
     if player_id < 0:
         name_label.text = "ПУСТО"
-        info_label.text = "бросьте игрока сюда"
-        fit_label.text = ""
+        info_label.text = role_name
+        fit_label.text = "бросьте игрока сюда"
         mouse_default_cursor_shape = Control.CURSOR_MOVE if editor_mode else Control.CURSOR_POINTING_HAND
         tooltip_text = "Перетащите сюда футболиста"
         _restore_style()
@@ -177,19 +191,21 @@ func set_player(player: Dictionary, calculated_rating = -1, calculated_fit_text 
     var surname = parts[parts.size() - 1] if parts.size() > 0 else "Игрок"
     var base_rating = int(player_data.get("rating", 0))
     name_label.text = surname
+    var pos_text = str(player_data.get("position", "?"))
     if effective_rating >= 0 and effective_rating != base_rating:
-        info_label.text = "%s  %d → %d · %d%%" % [player_data.get("position", "?"), base_rating, effective_rating, int(player_data.get("condition", 100))]
+        info_label.text = "%s  %d → %d" % [pos_text, base_rating, effective_rating]
     else:
-        info_label.text = "%s  %d · %d%%" % [player_data.get("position", "?"), base_rating, int(player_data.get("condition", 100))]
-    fit_label.text = fit_text
+        info_label.text = "%s  %d" % [pos_text, base_rating]
+    fit_label.text = fit_text if not fit_text.is_empty() else ("форма %d%%" % int(player_data.get("condition", 100)))
     mouse_default_cursor_shape = Control.CURSOR_MOVE if editor_mode else Control.CURSOR_DRAG
     var secondaries: Array = player_data.get("secondary", [])
-    tooltip_text = "%s\nОсновная: %s\nДополнительные: %s\nЭффективный рейтинг здесь: %d\n%s" % [
+    tooltip_text = "%s\nКлуб: %s\nОсновная: %s\nДополнительные: %s\nЭффективный рейтинг здесь: %d\n%s" % [
         player_data.get("name", "Игрок"),
+        player_data.get("club_name", ""),
         player_data.get("position", "?"),
         ", ".join(secondaries) if not secondaries.is_empty() else "нет",
         effective_rating if effective_rating >= 0 else base_rating,
-        "Перемещайте всю позицию по полю" if editor_mode else "Перетащите игрока на другую позицию",
+        "Перемещайте всю позицию по полю" if editor_mode else "Перетащите игрока на другую позицию или нажмите ↔",
     ]
     _restore_style()
 
@@ -306,8 +322,8 @@ func _restore_style() -> void:
     if editor_mode:
         add_theme_stylebox_override("panel", edit_style)
     elif is_selected:
-        add_theme_stylebox_override("panel", hover_style)
-    elif player_id < 0 or (effective_rating >= 0 and effective_rating < int(player_data.get("rating", 0)) - 5):
+        add_theme_stylebox_override("panel", selected_style)
+    elif player_id < 0 or (effective_rating >= 0 and player_id >= 0 and effective_rating < int(player_data.get("rating", 0)) - 5):
         add_theme_stylebox_override("panel", warning_style)
     else:
         add_theme_stylebox_override("panel", normal_style)
