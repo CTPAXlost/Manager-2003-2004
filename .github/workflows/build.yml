@@ -96,8 +96,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cp "tools/УСТАНОВИТЬ_ИГРУ.cmd" build/windows/
-          cp "tools/УСТАНОВИТЬ_ИГРУ.ps1" build/windows/
+          cp "tools/INSTALL_GAME.cmd" "build/windows/УСТАНОВИТЬ_ИГРУ.cmd"
+          cp "tools/INSTALL_GAME.ps1" "build/windows/УСТАНОВИТЬ_ИГРУ.ps1"
 
       - name: Упаковать Windows
         shell: bash

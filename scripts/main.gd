@@ -250,7 +250,7 @@ func _show_main_menu() -> void:
     exit.pressed.connect(get_tree().quit)
     box.add_child(exit)
 
-    var version = _label("Версия v1.1.0 · Godot 4", 12, colors.muted)
+    var version = _label("Версия v1.1.1 · Godot 4", 12, colors.muted)
     version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     box.add_child(version)
 
@@ -3409,7 +3409,7 @@ func _load_game() -> void:
         _initialize_missing_world_leagues_from_current()
     _clean_transfer_list()
     _ensure_set_piece_assignments()
-    notice_text = "Сохранение загружено и обновлено до версии v1.1.0."
+    notice_text = "Сохранение загружено и обновлено до версии v1.1.1."
     _show_dashboard("match" if not current_match.is_empty() else "club")
 
 func _generate_fixtures(team_ids: Array) -> Array:

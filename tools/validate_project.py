@@ -52,7 +52,7 @@ def validate_database() -> tuple[dict, dict[int, dict]]:
     teams = data["teams"]
     players = data["players"]
     leagues = data["leagues"]
-    assert str(data.get("meta", {}).get("version")) == "1.1.0"
+    assert str(data.get("meta", {}).get("version")) == "1.1.1"
     assert int(data.get("meta", {}).get("players_count", -1)) == len(players)
     assert {league["id"] for league in leagues} == EXPECTED
     counts = Counter(team["competition"] for team in teams)
@@ -107,9 +107,9 @@ def validate_features() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     portrait = (ROOT / "scripts" / "player_portrait.gd").read_text(encoding="utf-8")
 
-    assert 'config/version="1.1.0"' in project
+    assert 'config/version="1.1.1"' in project
     assert "textures/vram_compression/import_etc2_astc=true" in project
-    assert "Версия v1.1.0" in script
+    assert "Версия v1.1.1" in script
 
     match_squad = function_body(script, "_match_squad")
     assert 'squad_level", "first")) == "first"' in match_squad
@@ -143,10 +143,12 @@ def validate_features() -> None:
         assert fragment in script, fragment
 
     assert "class_name PlayerPortrait" in portrait and "draw_circle" in portrait
-    assert "УСТАНОВИТЬ_ИГРУ.cmd" in workflow and "УСТАНОВИТЬ_ИГРУ.ps1" in workflow
-    assert (ROOT / "tools" / "УСТАНОВИТЬ_ИГРУ.cmd").exists()
-    assert (ROOT / "tools" / "УСТАНОВИТЬ_ИГРУ.ps1").exists()
-    print("Функции v1.1.0: первая команда, усталость, замены ИИ, отчёт, карьера, кубки и переходы — OK")
+    assert "tools/INSTALL_GAME.cmd" in workflow and "tools/INSTALL_GAME.ps1" in workflow
+    assert "build/windows/УСТАНОВИТЬ_ИГРУ.cmd" in workflow
+    assert "build/windows/УСТАНОВИТЬ_ИГРУ.ps1" in workflow
+    assert (ROOT / "tools" / "INSTALL_GAME.cmd").exists()
+    assert (ROOT / "tools" / "INSTALL_GAME.ps1").exists()
+    print("Функции v1.1.1: первая команда, усталость, замены ИИ, отчёт, карьера, кубки и переходы — OK")
 
 
 def validate_index_performance(data: dict) -> None:
@@ -186,4 +188,4 @@ if __name__ == "__main__":
     validate_features()
     validate_index_performance(database)
     validate_strengths(database, players_by_id)
-    print("Проверки проекта v1.1.0 завершены успешно.")
+    print("Проверки проекта v1.1.1 завершены успешно.")
