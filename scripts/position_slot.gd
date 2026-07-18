@@ -28,13 +28,15 @@ var drag_started = false
 var press_position = Vector2.ZERO
 var editor_mode = false
 var moving_slot = false
+var is_selected = false
 
 func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(164, 108)
+    custom_minimum_size = Vector2(158, 122)
     mouse_filter = Control.MOUSE_FILTER_STOP
+    mouse_force_pass_scroll_events = false
     mouse_default_cursor_shape = Control.CURSOR_DRAG
     focus_mode = Control.FOCUS_NONE
 
@@ -106,6 +108,10 @@ func set_empty_message(name_text: String, info_text: String, status_text = "") -
     fit_label.text = str(status_text)
     mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
     tooltip_text = "%s\n%s" % [info_text, status_text]
+    _restore_style()
+
+func set_selected(value: bool) -> void:
+    is_selected = value
     _restore_style()
 
 func set_role(new_role: String) -> void:
@@ -275,6 +281,8 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 func _restore_style() -> void:
     if editor_mode:
         add_theme_stylebox_override("panel", edit_style)
+    elif is_selected:
+        add_theme_stylebox_override("panel", hover_style)
     elif player_id < 0 or (effective_rating >= 0 and effective_rating < int(player_data.get("rating", 0)) - 5):
         add_theme_stylebox_override("panel", warning_style)
     else:

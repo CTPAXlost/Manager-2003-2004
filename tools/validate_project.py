@@ -52,7 +52,7 @@ def validate_database() -> tuple[dict, dict[int, dict]]:
     teams = data["teams"]
     players = data["players"]
     leagues = data["leagues"]
-    assert str(data.get("meta", {}).get("version")) == "1.1.1"
+    assert str(data.get("meta", {}).get("version")) == "1.1.2"
     assert int(data.get("meta", {}).get("players_count", -1)) == len(players)
     assert {league["id"] for league in leagues} == EXPECTED
     counts = Counter(team["competition"] for team in teams)
@@ -107,9 +107,9 @@ def validate_features() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     portrait = (ROOT / "scripts" / "player_portrait.gd").read_text(encoding="utf-8")
 
-    assert 'config/version="1.1.1"' in project
+    assert 'config/version="1.1.2"' in project
     assert "textures/vram_compression/import_etc2_astc=true" in project
-    assert "Версия v1.1.1" in script
+    assert "Версия v1.1.2" in script
 
     match_squad = function_body(script, "_match_squad")
     assert 'squad_level", "first")) == "first"' in match_squad
@@ -142,13 +142,17 @@ def validate_features() -> None:
     for fragment in required:
         assert fragment in script, fragment
 
-    assert "class_name PlayerPortrait" in portrait and "draw_circle" in portrait
+    assert "class_name PlayerPortrait" in portrait and "draw_colored_polygon" in portrait and "карикатурных" in portrait
+    assert "competition_player_stats" in script
+    assert "func _repair_competition_statistics" in script
+    assert "func _migrate_legacy_condition_values" in script
+    assert "mouse_force_pass_scroll_events = false" in (ROOT / "scripts" / "player_token.gd").read_text(encoding="utf-8")
     assert "tools/INSTALL_GAME.cmd" in workflow and "tools/INSTALL_GAME.ps1" in workflow
     assert "build/windows/УСТАНОВИТЬ_ИГРУ.cmd" in workflow
     assert "build/windows/УСТАНОВИТЬ_ИГРУ.ps1" in workflow
     assert (ROOT / "tools" / "INSTALL_GAME.cmd").exists()
     assert (ROOT / "tools" / "INSTALL_GAME.ps1").exists()
-    print("Функции v1.1.1: первая команда, усталость, замены ИИ, отчёт, карьера, кубки и переходы — OK")
+    print("Функции v1.1.2: состав, статистика лиг, баланс, усталость, отчёт, кубки и переходы — OK")
 
 
 def validate_index_performance(data: dict) -> None:
@@ -166,6 +170,39 @@ def validate_index_performance(data: dict) -> None:
     assert elapsed < 2.0, elapsed
     print(f"Индекс игрок → клуб: {len(owner_index)} записей за {elapsed:.4f} с — OK")
 
+
+
+def validate_match_balance() -> None:
+    import random
+    random.seed(200304)
+
+    def quick_goals(attack: float, defense: float, home: bool) -> int:
+        expectation = 1.18 + (attack - defense) / 24.0 + (0.18 if home else 0.0)
+        expectation = max(0.08, min(3.40, expectation))
+        goals = sum(random.random() < expectation / 8.0 for _ in range(8))
+        if random.random() < 0.015:
+            goals += 1
+        return min(goals, 6)
+
+    wins = draws = losses = 0
+    total_goals = 0
+    for _ in range(25000):
+        home = quick_goals(87.5, 70.0, True)
+        away = quick_goals(70.0, 87.5, False)
+        total_goals += home + away
+        if home > away:
+            wins += 1
+        elif home == away:
+            draws += 1
+        else:
+            losses += 1
+    win_rate = wins / 25000
+    upset_rate = losses / 25000
+    average_goals = total_goals / 25000
+    assert 0.75 <= win_rate <= 0.86, (win_rate, upset_rate)
+    assert 0.03 <= upset_rate <= 0.09, (win_rate, upset_rate)
+    assert 1.8 <= average_goals <= 3.2, average_goals
+    print(f"Баланс матчей: фаворит {win_rate:.1%} побед, сенсации {upset_rate:.1%}, голов {average_goals:.2f} — OK")
 
 def validate_strengths(data: dict, players: dict[int, dict]) -> None:
     def average(team: dict) -> float:
@@ -188,4 +225,5 @@ if __name__ == "__main__":
     validate_features()
     validate_index_performance(database)
     validate_strengths(database, players_by_id)
-    print("Проверки проекта v1.1.1 завершены успешно.")
+    validate_match_balance()
+    print("Проверки проекта v1.1.2 завершены успешно.")

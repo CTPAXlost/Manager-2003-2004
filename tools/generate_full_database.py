@@ -284,7 +284,7 @@ for comp_id,name,country,tier,teams in LEAGUES:
     leagues.append({'id':comp_id,'name':name,'country':country,'tier':tier,'team_count':len(teams),'promotion_places':3 if tier==2 else 0,'relegation_places':3 if tier==1 else 0})
 
 out={'meta':dict(old.get('meta',{})),'teams':new_teams,'players':new_players,'market_players':[],'leagues':leagues}
-out['meta'].update({'version':'1.1.1','description':'Полная экспериментальная структура: 8 стран, по два дивизиона, основной состав, резерв и академия.',
+out['meta'].update({'version':'1.1.2','description':'Полная экспериментальная структура: 8 стран, по два дивизиона, основной состав, резерв и академия.',
                     'note':'Исторические ядра сохранены и расширены. Для большого числа клубов составы и резерв являются авторскими игровыми заполнителями; академии содержат как вымышленных игроков, так и альтернативно молодых будущих звёзд.',
                     'teams_count':len(new_teams),'players_count':len(new_players),'data_limitations':'Не копирует базы Championship Manager/Football Manager; рейтинги, контракты и часть расширенных составов авторские.'})
 DB.write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
