@@ -28,8 +28,8 @@
 Чтобы готовые файлы появились во вкладке **Releases**, создайте тег версии, например:
 
 ```bash
-git tag v0.9.1
-git push origin v0.9.1
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 GitHub автоматически создаст релиз и приложит Windows-архив и APK.
