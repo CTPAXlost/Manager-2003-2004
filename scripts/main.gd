@@ -986,6 +986,7 @@ func _layout_pitch_slots(pitch: TacticsPitch) -> void:
             continue
         var coords = _slot_coordinates(slot_data)
         var card_size = slot.custom_minimum_size
+        slot.size = card_size
         var x = coords.x * pitch.size.x - card_size.x / 2.0
         var y = coords.y * pitch.size.y - card_size.y / 2.0
         slot.position = Vector2(

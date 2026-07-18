@@ -1,16 +1,16 @@
 class_name PlayerPortrait
 extends Control
 
-# Процедурный полу-реалистичный портрет для тактических карточек.
-# Это всё ещё процедурный портрет, просто более детализированный визуально.
-# Для Реала и Барселоны применяются клубные цвета, чтобы визуально тестировать
-# премиальный стиль именно у этих команд.
+# Компактный мини-портрет для карточки на поле.
+# Для Реала и Барселоны используются индивидуальные профили, чтобы игроки
+# были узнаваемы визуально, а не выглядели как случайные аватары.
 
 var player_data: Dictionary = {}
 
 func setup(data: Dictionary) -> void:
     player_data = data.duplicate(true)
-    custom_minimum_size = Vector2(78, 86)
+    custom_minimum_size = Vector2(50, 58)
+    size = custom_minimum_size
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     queue_redraw()
 
@@ -21,125 +21,282 @@ func _notification(what: int) -> void:
 func _seed() -> int:
     return abs(int(player_data.get("id", 0)) * 214013 + str(player_data.get("name", "")).hash())
 
-func _team_colors() -> Dictionary:
+func _parse_color(hex: String) -> Color:
+    return Color(hex)
+
+func _team_palette() -> Dictionary:
     var club = str(player_data.get("club_name", ""))
     if club == "Реал Мадрид":
-        return {"shirt": Color("edf1f4"), "shirt_2": Color("d9b44f"), "trim": Color("19314f"), "bg": Color("0d2842")}
+        return {
+            "frame": _parse_color("d8b354"),
+            "bg": _parse_color("0d1730"),
+            "bg2": _parse_color("1b2c53"),
+            "line": _parse_color("27486e"),
+            "shirt": _parse_color("f5f6f8"),
+            "shirt2": _parse_color("d5b15b"),
+            "text": _parse_color("e9edf3"),
+        }
     if club == "Барселона":
-        return {"shirt": Color("173f95"), "shirt_2": Color("8e163a"), "trim": Color("ebd08f"), "bg": Color("1a1f52")}
-    return {"shirt": Color("e4e7ea"), "shirt_2": Color("3294d4"), "trim": Color("d9b35f"), "bg": Color("0e2534")}
+        return {
+            "frame": _parse_color("d8b354"),
+            "bg": _parse_color("11193a"),
+            "bg2": _parse_color("213c88"),
+            "line": _parse_color("5c1d41"),
+            "shirt": _parse_color("8f1539"),
+            "shirt2": _parse_color("214c9f"),
+            "text": _parse_color("e9edf3"),
+        }
+    return {
+        "frame": _parse_color("c79434"),
+        "bg": _parse_color("0d1730"),
+        "bg2": _parse_color("203958"),
+        "line": _parse_color("27486e"),
+        "shirt": _parse_color("eff5fa"),
+        "shirt2": _parse_color("3a9ad8"),
+        "text": _parse_color("e9edf3"),
+    }
+
+func _premium_profile() -> Dictionary:
+    var club = str(player_data.get("club_name", ""))
+    if club != "Реал Мадрид" and club != "Барселона":
+        return {}
+
+    var profiles := {
+        # Реал Мадрид
+        "Iker Casillas": {"skin":"e4b38d", "hair":"3a271d", "hair_style":"short", "beard":"none", "eye":"3b2a1e"},
+        "César Sánchez": {"skin":"e0b08c", "hair":"2b201c", "hair_style":"short", "beard":"stubble"},
+        "Roberto Carlos": {"skin":"7d5139", "hair":"1a1a1a", "hair_style":"bald", "beard":"none"},
+        "Míchel Salgado": {"skin":"d7a17a", "hair":"241b18", "hair_style":"medium", "beard":"stubble"},
+        "Iván Helguera": {"skin":"ddb18a", "hair":"362823", "hair_style":"short", "beard":"none"},
+        "Francisco Pavón": {"skin":"d8a985", "hair":"2a2220", "hair_style":"short", "beard":"none"},
+        "Raúl Bravo": {"skin":"d6a179", "hair":"2d221c", "hair_style":"short", "beard":"none"},
+        "David Beckham": {"skin":"e4b793", "hair":"b8874f", "hair_style":"mohawk", "beard":"stubble"},
+        "Esteban Cambiasso": {"skin":"dcb08a", "hair":"2d2524", "hair_style":"bald", "beard":"none"},
+        "Guti": {"skin":"e6ba97", "hair":"cfb16f", "hair_style":"medium", "beard":"none"},
+        "Albert Celades": {"skin":"ddb089", "hair":"3a2b22", "hair_style":"short", "beard":"none"},
+        "Zinedine Zidane": {"skin":"dfb08a", "hair":"2b1d18", "hair_style":"bald", "beard":"stubble"},
+        "Santiago Solari": {"skin":"d3a07a", "hair":"3b2b20", "hair_style":"long", "beard":"none"},
+        "Luís Figo": {"skin":"dca57d", "hair":"2d1f18", "hair_style":"medium", "beard":"stubble"},
+        "Raúl": {"skin":"d8aa84", "hair":"261d18", "hair_style":"short", "beard":"none"},
+        "Ronaldo": {"skin":"9f694a", "hair":"1b1b1b", "hair_style":"buzz", "beard":"none"},
+        "Javier Portillo": {"skin":"dfb18b", "hair":"261f19", "hair_style":"short", "beard":"none"},
+        "Borja Fernández": {"skin":"e0b38e", "hair":"2e241d", "hair_style":"short", "beard":"none"},
+        # Барселона
+        "Víctor Valdés": {"skin":"ddb089", "hair":"271f1c", "hair_style":"short", "beard":"stubble"},
+        "Rüştü Reçber": {"skin":"c79270", "hair":"111111", "hair_style":"long", "beard":"goatee", "band":"black"},
+        "Carles Puyol": {"skin":"ddb089", "hair":"5e422d", "hair_style":"curly_long", "beard":"stubble"},
+        "Rafael Márquez": {"skin":"c89271", "hair":"211a18", "hair_style":"short", "beard":"goatee"},
+        "Oleguer": {"skin":"d7a580", "hair":"4a352a", "hair_style":"curly_long", "beard":"none"},
+        "Giovanni van Bronckhorst": {"skin":"c99772", "hair":"241c18", "hair_style":"short", "beard":"stubble"},
+        "Gabri": {"skin":"d8aa84", "hair":"2b201b", "hair_style":"short", "beard":"none"},
+        "Phillip Cocu": {"skin":"e3b68f", "hair":"d6b277", "hair_style":"short", "beard":"none"},
+        "Edgar Davids": {"skin":"7d523a", "hair":"111111", "hair_style":"braids", "beard":"goatee", "glasses":true},
+        "Xavi": {"skin":"d8a985", "hair":"2d231e", "hair_style":"short", "beard":"stubble"},
+        "Ronaldinho": {"skin":"7b5037", "hair":"111111", "hair_style":"ponytail", "beard":"goatee", "band":"black"},
+        "Luis Enrique": {"skin":"d7a27f", "hair":"30241e", "hair_style":"short", "beard":"stubble"},
+        "Andrés Iniesta": {"skin":"e6be9b", "hair":"c09d70", "hair_style":"short", "beard":"none"},
+        "Patrick Kluivert": {"skin":"7c5239", "hair":"171717", "hair_style":"buzz", "beard":"goatee"},
+        "Javier Saviola": {"skin":"dfb28b", "hair":"412b1e", "hair_style":"long", "beard":"none"},
+        "Luis García": {"skin":"d9aa82", "hair":"2a211c", "hair_style":"short", "beard":"stubble"},
+        "Ricardo Quaresma": {"skin":"d3a07a", "hair":"1b1b1b", "hair_style":"medium", "beard":"none"},
+        "Lionel Messi": {"skin":"ddb08c", "hair":"2d241f", "hair_style":"shaggy", "beard":"none"},
+    }
+    return profiles.get(str(player_data.get("name", "")), {})
+
+func _fallback_profile() -> Dictionary:
+    var seed = _seed()
+    var skins = ["e8bf9c", "ddb18d", "cc946d", "9b674b", "6f4632"]
+    var hairs = ["111111", "2f241f", "5a3c29", "a27446", "d1b88b"]
+    var styles = ["short", "medium", "buzz", "long", "shaggy"]
+    return {
+        "skin": skins[posmod(seed, skins.size())],
+        "hair": hairs[posmod(int(seed / 13), hairs.size())],
+        "hair_style": styles[posmod(int(seed / 17), styles.size())],
+        "beard": ["none", "stubble", "none", "none", "goatee"][posmod(int(seed / 19), 5)],
+        "eye": "2f241f",
+    }
+
+func _player_profile() -> Dictionary:
+    var profile = _premium_profile()
+    if profile.is_empty():
+        profile = _fallback_profile()
+    if not profile.has("eye"):
+        profile["eye"] = "2f241f"
+    return profile
 
 func _draw() -> void:
     if player_data.is_empty() or int(player_data.get("id", -1)) < 0:
         return
 
-    var seed = _seed()
-    var w = size.x
-    var h = size.y
-    var cx = w * 0.5
-    var colors = _team_colors()
-    var club_bg: Color = colors["bg"]
+    var pal = _team_palette()
+    var profile = _player_profile()
+    var card = Rect2(Vector2.ZERO, size)
+    var outer = StyleBoxFlat.new()
+    outer.bg_color = Color("07121d")
+    outer.border_color = pal["frame"]
+    outer.set_border_width_all(1)
+    outer.set_corner_radius_all(7)
+    draw_style_box(outer, card)
 
-    var skin_palette = [
-        Color("f0c6a4"), Color("dfa786"), Color("c78b67"),
-        Color("a46849"), Color("7a4a33"), Color("e6bb94")
-    ]
-    var hair_palette = [Color("111111"), Color("36261e"), Color("5b3d2d"), Color("a57949"), Color("d7c49f")]
-    var skin: Color = skin_palette[posmod(seed, skin_palette.size())]
-    var hair: Color = hair_palette[posmod(seed / 17, hair_palette.size())]
+    var inner = Rect2(3, 3, size.x - 6, size.y - 6)
+    var inner_style = StyleBoxFlat.new()
+    inner_style.bg_color = pal["bg"]
+    inner_style.border_color = Color(1, 1, 1, 0.06)
+    inner_style.set_border_width_all(1)
+    inner_style.set_corner_radius_all(6)
+    draw_style_box(inner_style, inner)
 
-    # Мягкий фон карточки.
-    draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0), true)
-    draw_circle(Vector2(cx, h * 0.44), w * 0.44, club_bg.lightened(0.16))
-    draw_circle(Vector2(cx, h * 0.44), w * 0.37, club_bg.lightened(0.05))
-    draw_circle(Vector2(cx, h * 0.44), w * 0.44, Color(1, 1, 1, 0.14), false, 1.5)
+    draw_rect(Rect2(inner.position, Vector2(inner.size.x, inner.size.y * 0.36)), pal["bg2"], true)
+    draw_line(inner.position + Vector2(0, inner.size.y * 0.36), inner.position + Vector2(inner.size.x, inner.size.y * 0.36), pal["line"], 1.0)
 
-    # Плечи/майка.
-    var shirt_main: Color = colors["shirt"]
-    var shirt_alt: Color = colors["shirt_2"]
-    var trim: Color = colors["trim"]
-    var shoulder_y = h * 0.65
-    var body_poly = PackedVector2Array([
-        Vector2(cx - w * 0.36, h * 0.97),
-        Vector2(cx - w * 0.28, shoulder_y + 6),
-        Vector2(cx - w * 0.13, shoulder_y - 2),
-        Vector2(cx - w * 0.08, shoulder_y - 7),
-        Vector2(cx + w * 0.08, shoulder_y - 7),
-        Vector2(cx + w * 0.13, shoulder_y - 2),
-        Vector2(cx + w * 0.28, shoulder_y + 6),
-        Vector2(cx + w * 0.36, h * 0.97),
-    ])
-    draw_colored_polygon(body_poly, shirt_main)
+    _draw_portrait(inner, profile, pal)
+    draw_rect(inner, Color(1, 1, 1, 0.04), false, 1.0)
+
+func _draw_portrait(rect: Rect2, profile: Dictionary, pal: Dictionary) -> void:
+    var skin = _parse_color(str(profile.get("skin", "ddb18d")))
+    var hair = _parse_color(str(profile.get("hair", "2a211d")))
+    var eye = _parse_color(str(profile.get("eye", "2f241f")))
+    var hair_style = str(profile.get("hair_style", "short"))
+    var beard_style = str(profile.get("beard", "none"))
+    var band = str(profile.get("band", ""))
+    var has_glasses = bool(profile.get("glasses", false))
+
+    var cx = rect.get_center().x
+    var top_y = rect.position.y
+    var head_center = Vector2(cx, top_y + 24)
+    var head_rx = 9.4
+    var head_ry = 11.2
+
+    # Плечи/майка
+    var shirt_main: Color = pal["shirt"]
+    var shirt_alt: Color = pal["shirt2"]
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(cx - 18, rect.position.y + rect.size.y - 1),
+        Vector2(cx - 12, head_center.y + 18),
+        Vector2(cx - 4, head_center.y + 15),
+        Vector2(cx + 4, head_center.y + 15),
+        Vector2(cx + 12, head_center.y + 18),
+        Vector2(cx + 18, rect.position.y + rect.size.y - 1),
+    ]), shirt_main)
     if str(player_data.get("club_name", "")) == "Барселона":
-        draw_rect(Rect2(cx - w * 0.18, shoulder_y - 4, w * 0.07, h * 0.28), shirt_alt, true)
-        draw_rect(Rect2(cx - w * 0.05, shoulder_y - 7, w * 0.07, h * 0.32), shirt_alt, true)
-        draw_rect(Rect2(cx + w * 0.08, shoulder_y - 4, w * 0.07, h * 0.28), shirt_alt, true)
+        draw_rect(Rect2(cx - 10, head_center.y + 16, 5, 22), shirt_alt, true)
+        draw_rect(Rect2(cx - 1, head_center.y + 16, 5, 22), shirt_alt, true)
+        draw_rect(Rect2(cx + 8, head_center.y + 16, 5, 22), shirt_alt, true)
     else:
-        draw_polyline(PackedVector2Array([
-            Vector2(cx - w * 0.30, h * 0.95), Vector2(cx, h * 0.80), Vector2(cx + w * 0.30, h * 0.95)
-        ]), trim, 2.0, true)
-    draw_polyline(PackedVector2Array([
-        Vector2(cx - w * 0.08, shoulder_y - 6), Vector2(cx, shoulder_y + 4), Vector2(cx + w * 0.08, shoulder_y - 6)
-    ]), trim, 2.0, true)
+        draw_line(Vector2(cx - 13, head_center.y + 22), Vector2(cx, head_center.y + 16), shirt_alt, 1.6)
+        draw_line(Vector2(cx + 13, head_center.y + 22), Vector2(cx, head_center.y + 16), shirt_alt, 1.6)
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(cx - 5, head_center.y + 16), Vector2(cx, head_center.y + 22), Vector2(cx + 5, head_center.y + 16), Vector2(cx, head_center.y + 18)
+    ]), Color("ffffff"))
 
-    # Шея.
-    draw_rect(Rect2(cx - w * 0.07, h * 0.47, w * 0.14, h * 0.14), skin.darkened(0.04), true)
-
-    # Голова.
-    var head_center = Vector2(cx, h * 0.33)
-    var head_rx = w * (0.18 + float(seed % 4) * 0.01)
-    var head_ry = h * (0.16 + float((seed / 9) % 4) * 0.008)
+    # Шея и голова
+    draw_rect(Rect2(cx - 3.5, head_center.y + 10, 7, 5), skin.darkened(0.06), true)
     _draw_ellipse(head_center, head_rx, head_ry, skin)
-    _draw_ellipse(head_center + Vector2(head_rx * 0.12, head_ry * 0.04), head_rx * 0.96, head_ry * 0.95, Color(1, 1, 1, 0.05))
+    draw_circle(Vector2(cx - head_rx + 1, head_center.y), 1.5, skin.darkened(0.05))
+    draw_circle(Vector2(cx + head_rx - 1, head_center.y), 1.5, skin.darkened(0.05))
 
-    # Уши.
-    draw_circle(Vector2(cx - head_rx * 0.94, head_center.y), w * 0.018, skin.darkened(0.03))
-    draw_circle(Vector2(cx + head_rx * 0.94, head_center.y), w * 0.018, skin.darkened(0.03))
+    _draw_hair(head_center, head_rx, head_ry, hair, hair_style)
 
-    # Волосы.
-    var hair_style = posmod(seed / 41, 6)
-    if hair_style == 0:
-        draw_arc(head_center - Vector2(0, head_ry * 0.15), head_rx * 0.98, PI, TAU, 24, hair, max(4.0, w * 0.08))
-    elif hair_style == 1:
-        draw_colored_polygon(PackedVector2Array([
-            Vector2(cx - head_rx * 0.92, head_center.y - head_ry * 0.22),
-            Vector2(cx - head_rx * 0.58, head_center.y - head_ry * 0.95),
-            Vector2(cx + head_rx * 0.15, head_center.y - head_ry * 0.98),
-            Vector2(cx + head_rx * 0.88, head_center.y - head_ry * 0.18),
-            Vector2(cx + head_rx * 0.30, head_center.y - head_ry * 0.42),
-            Vector2(cx - head_rx * 0.55, head_center.y - head_ry * 0.40)
-        ]), hair)
-    elif hair_style == 2:
-        for i in range(6):
-            var px = cx - head_rx * 0.72 + i * head_rx * 0.28
-            draw_circle(Vector2(px, head_center.y - head_ry * (0.80 + 0.05 * sin(float(i)))), w * 0.040, hair)
-    elif hair_style == 3:
-        draw_arc(head_center - Vector2(0, head_ry * 0.12), head_rx * 1.00, PI, TAU, 24, hair, max(2.0, w * 0.05))
-        draw_line(Vector2(cx - head_rx * 0.88, head_center.y - head_ry * 0.16), Vector2(cx - head_rx * 0.72, head_center.y + head_ry * 0.55), hair, 2.0)
-        draw_line(Vector2(cx + head_rx * 0.88, head_center.y - head_ry * 0.16), Vector2(cx + head_rx * 0.72, head_center.y + head_ry * 0.55), hair, 2.0)
-    elif hair_style == 4:
-        draw_arc(head_center - Vector2(0, head_ry * 0.05), head_rx * 1.02, PI + 0.18, TAU - 0.18, 24, hair, max(6.0, w * 0.11))
-    else:
-        draw_arc(head_center - Vector2(0, head_ry * 0.30), head_rx * 0.55, PI, TAU, 24, hair, max(5.0, w * 0.08))
+    if not band.is_empty():
+        var band_color = _parse_color("202020") if band == "black" else _parse_color(band)
+        draw_rect(Rect2(cx - head_rx - 1, head_center.y - 6, head_rx * 2 + 2, 3.2), band_color, true)
 
-    # Лицо.
-    var eye_y = head_center.y - head_ry * 0.02
-    draw_line(Vector2(cx - head_rx * 0.42, eye_y), Vector2(cx - head_rx * 0.20, eye_y), Color("2a221f"), 1.2)
-    draw_line(Vector2(cx + head_rx * 0.20, eye_y), Vector2(cx + head_rx * 0.42, eye_y), Color("2a221f"), 1.2)
-    draw_line(Vector2(cx - head_rx * 0.46, eye_y - 4), Vector2(cx - head_rx * 0.20, eye_y - 5), hair.darkened(0.08), 1.1)
-    draw_line(Vector2(cx + head_rx * 0.20, eye_y - 5), Vector2(cx + head_rx * 0.46, eye_y - 4), hair.darkened(0.08), 1.1)
-    draw_line(Vector2(cx, head_center.y + head_ry * 0.01), Vector2(cx - 1, head_center.y + head_ry * 0.26), skin.darkened(0.16), 1.0)
-    draw_line(Vector2(cx - head_rx * 0.16, head_center.y + head_ry * 0.44), Vector2(cx + head_rx * 0.16, head_center.y + head_ry * 0.44), Color("6e433a"), 1.2)
+    # Лицо
+    draw_line(Vector2(cx - 4, head_center.y - 1), Vector2(cx - 2, head_center.y - 1), eye, 1.0)
+    draw_line(Vector2(cx + 2, head_center.y - 1), Vector2(cx + 4, head_center.y - 1), eye, 1.0)
+    draw_line(Vector2(cx, head_center.y + 1), Vector2(cx, head_center.y + 5), skin.darkened(0.18), 1.0)
+    draw_line(Vector2(cx - 3.5, head_center.y + 8), Vector2(cx + 3.5, head_center.y + 8), Color("7a4f45"), 1.0)
 
-    if posmod(seed / 7, 5) == 0:
-        draw_arc(Vector2(cx, head_center.y + head_ry * 0.16), head_rx * 0.26, 0.2, PI - 0.2, 14, hair.darkened(0.1), 2.0)
-        draw_arc(Vector2(cx, head_center.y + head_ry * 0.32), head_rx * 0.20, 0.15, PI - 0.15, 14, hair.darkened(0.1), 1.8)
+    if beard_style != "none":
+        _draw_beard(head_center, skin, hair, beard_style)
 
-    # Небольшая окантовка портрета.
-    draw_circle(Vector2(cx, h * 0.44), w * 0.44, Color(1, 1, 1, 0.08), false, 1.0)
+    if has_glasses:
+        var g = Color("101010")
+        draw_rect(Rect2(cx - 7, head_center.y - 2, 5, 3), Color(0,0,0,0), false, 1.2)
+        draw_rect(Rect2(cx + 2, head_center.y - 2, 5, 3), Color(0,0,0,0), false, 1.2)
+        draw_line(Vector2(cx - 2, head_center.y - 0.5), Vector2(cx + 2, head_center.y - 0.5), g, 1.0)
+        draw_line(Vector2(cx - 9, head_center.y - 1), Vector2(cx - 7, head_center.y - 1), g, 1.0)
+        draw_line(Vector2(cx + 7, head_center.y - 1), Vector2(cx + 9, head_center.y - 1), g, 1.0)
 
-    var shirt_no = str(1 + posmod(int(player_data.get("id", 0)), 30))
-    draw_string(ThemeDB.fallback_font, Vector2(cx - 5, h * 0.95), shirt_no, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1, 1, 1, 0.65))
+func _draw_hair(head_center: Vector2, head_rx: float, head_ry: float, hair: Color, hair_style: String) -> void:
+    var cx = head_center.x
+    var cy = head_center.y
+    match hair_style:
+        "bald":
+            return
+        "buzz":
+            draw_arc(head_center - Vector2(0, 2), head_rx, PI + 0.1, TAU - 0.1, 20, hair, 5.0)
+        "short":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 10, cy - 1), Vector2(cx - 9, cy - 8), Vector2(cx - 4, cy - 12),
+                Vector2(cx + 4, cy - 12), Vector2(cx + 9, cy - 8), Vector2(cx + 10, cy - 1),
+                Vector2(cx + 4, cy - 5), Vector2(cx - 4, cy - 5)
+            ]), hair)
+        "medium":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 11, cy - 1), Vector2(cx - 10, cy - 10), Vector2(cx - 4, cy - 13),
+                Vector2(cx + 5, cy - 12), Vector2(cx + 10, cy - 7), Vector2(cx + 10, cy + 2),
+                Vector2(cx + 6, cy - 2), Vector2(cx - 6, cy - 2)
+            ]), hair)
+            draw_rect(Rect2(cx - 10, cy - 1, 2, 10), hair, true)
+            draw_rect(Rect2(cx + 8, cy - 1, 2, 10), hair, true)
+        "long":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 10, cy - 1), Vector2(cx - 10, cy - 11), Vector2(cx - 5, cy - 13),
+                Vector2(cx + 5, cy - 13), Vector2(cx + 10, cy - 11), Vector2(cx + 10, cy - 1),
+                Vector2(cx + 8, cy + 8), Vector2(cx - 8, cy + 8)
+            ]), hair)
+        "curly_long":
+            for ix in range(-2, 3):
+                draw_circle(Vector2(cx + ix * 4.0, cy - 9), 3.2, hair)
+            for iy in range(0, 4):
+                draw_circle(Vector2(cx - 10, cy - 2 + iy * 4.0), 2.8, hair)
+                draw_circle(Vector2(cx + 10, cy - 2 + iy * 4.0), 2.8, hair)
+            draw_circle(Vector2(cx - 6, cy + 10), 2.6, hair)
+            draw_circle(Vector2(cx + 6, cy + 10), 2.6, hair)
+        "shaggy":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 11, cy - 1), Vector2(cx - 9, cy - 10), Vector2(cx - 4, cy - 13),
+                Vector2(cx + 1, cy - 12), Vector2(cx + 6, cy - 13), Vector2(cx + 10, cy - 8),
+                Vector2(cx + 8, cy - 1), Vector2(cx + 2, cy - 3), Vector2(cx - 4, cy - 1)
+            ]), hair)
+        "mohawk":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 3, cy - 12), Vector2(cx + 3, cy - 12), Vector2(cx + 5, cy - 1), Vector2(cx - 5, cy - 1)
+            ]), hair)
+        "ponytail":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 10, cy - 1), Vector2(cx - 8, cy - 10), Vector2(cx - 3, cy - 13),
+                Vector2(cx + 5, cy - 12), Vector2(cx + 10, cy - 7), Vector2(cx + 10, cy + 2),
+                Vector2(cx + 7, cy + 3), Vector2(cx - 7, cy + 3)
+            ]), hair)
+            draw_rect(Rect2(cx + 7, cy + 3, 3, 10), hair, true)
+            draw_circle(Vector2(cx + 8.5, cy + 14), 2.7, hair)
+        "braids":
+            draw_colored_polygon(PackedVector2Array([
+                Vector2(cx - 9, cy - 1), Vector2(cx - 8, cy - 10), Vector2(cx - 3, cy - 12),
+                Vector2(cx + 4, cy - 12), Vector2(cx + 9, cy - 8), Vector2(cx + 9, cy + 1),
+                Vector2(cx - 8, cy + 1)
+            ]), hair)
+            draw_rect(Rect2(cx - 10, cy + 1, 2, 9), hair, true)
+            draw_rect(Rect2(cx + 8, cy + 1, 2, 9), hair, true)
+        _:
+            draw_arc(head_center - Vector2(0, 2), head_rx, PI, TAU, 20, hair, 5.0)
+
+func _draw_beard(head_center: Vector2, skin: Color, hair: Color, beard_style: String) -> void:
+    var cx = head_center.x
+    var cy = head_center.y
+    match beard_style:
+        "stubble":
+            draw_arc(Vector2(cx, cy + 6), 5.0, 0.1, PI - 0.1, 12, hair.darkened(0.1), 1.3)
+        "goatee":
+            draw_line(Vector2(cx - 2.5, cy + 8), Vector2(cx + 2.5, cy + 8), hair, 1.3)
+            draw_line(Vector2(cx, cy + 7), Vector2(cx, cy + 11), hair, 1.3)
+            draw_arc(Vector2(cx, cy + 9), 2.5, 0.3, PI - 0.3, 10, hair, 1.3)
+        "moustache":
+            draw_line(Vector2(cx - 3.5, cy + 5.5), Vector2(cx + 3.5, cy + 5.5), hair, 1.3)
+        _:
+            pass
 
 func _draw_ellipse(center: Vector2, rx: float, ry: float, color: Color) -> void:
     var points := PackedVector2Array()
