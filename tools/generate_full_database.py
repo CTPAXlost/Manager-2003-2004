@@ -212,6 +212,12 @@ for t in new_teams:
     existing=[]
     if name in old_teams:
         existing=[old_players[i] for i in old_teams[name].get('players',[]) if i in old_players]
+        deduped=[]; seen_team_names=set()
+        for candidate in sorted(existing,key=lambda p:(p.get('rating',0),-p.get('id',0)),reverse=True):
+            nk=str(candidate.get('name','')).casefold().strip()
+            if nk in seen_team_names: continue
+            seen_team_names.add(nk); deduped.append(candidate)
+        existing=deduped
         existing.sort(key=lambda p:p.get('rating',0),reverse=True)
         for idx,p0 in enumerate(existing):
             p=dict(p0)
@@ -278,7 +284,7 @@ for comp_id,name,country,tier,teams in LEAGUES:
     leagues.append({'id':comp_id,'name':name,'country':country,'tier':tier,'team_count':len(teams),'promotion_places':3 if tier==2 else 0,'relegation_places':3 if tier==1 else 0})
 
 out={'meta':dict(old.get('meta',{})),'teams':new_teams,'players':new_players,'market_players':[],'leagues':leagues}
-out['meta'].update({'version':'1.0.0','description':'Полная экспериментальная структура: 8 стран, по два дивизиона, основной состав, резерв и академия.',
+out['meta'].update({'version':'1.1.0','description':'Полная экспериментальная структура: 8 стран, по два дивизиона, основной состав, резерв и академия.',
                     'note':'Исторические ядра сохранены и расширены. Для большого числа клубов составы и резерв являются авторскими игровыми заполнителями; академии содержат как вымышленных игроков, так и альтернативно молодых будущих звёзд.',
                     'teams_count':len(new_teams),'players_count':len(new_players),'data_limitations':'Не копирует базы Championship Manager/Football Manager; рейтинги, контракты и часть расширенных составов авторские.'})
 DB.write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')

@@ -16,7 +16,9 @@ var title_label: Label
 var name_label: Label
 var info_label: Label
 var fit_label: Label
-var body: VBoxContainer
+var body: HBoxContainer
+var portrait: PlayerPortrait
+var text_box: VBoxContainer
 var normal_style: StyleBoxFlat
 var hover_style: StyleBoxFlat
 var warning_style: StyleBoxFlat
@@ -31,7 +33,7 @@ func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(150, 92)
+    custom_minimum_size = Vector2(164, 108)
     mouse_filter = Control.MOUSE_FILTER_STOP
     mouse_default_cursor_shape = Control.CURSOR_DRAG
     focus_mode = Control.FOCUS_NONE
@@ -42,10 +44,21 @@ func setup(data: Dictionary) -> void:
     edit_style = _make_style(Color(0.16, 0.12, 0.035, 0.98), Color("ffc857"), 2)
     add_theme_stylebox_override("panel", normal_style)
 
-    body = VBoxContainer.new()
-    body.add_theme_constant_override("separation", 0)
+    body = HBoxContainer.new()
+    body.add_theme_constant_override("separation", 5)
+    body.alignment = BoxContainer.ALIGNMENT_CENTER
     body.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(body)
+
+    portrait = PlayerPortrait.new()
+    portrait.setup({})
+    body.add_child(portrait)
+
+    text_box = VBoxContainer.new()
+    text_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    text_box.add_theme_constant_override("separation", 0)
+    text_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    body.add_child(text_box)
 
     title_label = Label.new()
     title_label.text = role_name
@@ -53,7 +66,7 @@ func setup(data: Dictionary) -> void:
     title_label.add_theme_font_size_override("font_size", 11)
     title_label.add_theme_color_override("font_color", Color("7fffd4"))
     title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    body.add_child(title_label)
+    text_box.add_child(title_label)
 
     name_label = Label.new()
     name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -61,21 +74,21 @@ func setup(data: Dictionary) -> void:
     name_label.add_theme_font_size_override("font_size", 12)
     name_label.add_theme_color_override("font_color", Color("e8f3f8"))
     name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    body.add_child(name_label)
+    text_box.add_child(name_label)
 
     info_label = Label.new()
     info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     info_label.add_theme_font_size_override("font_size", 11)
     info_label.add_theme_color_override("font_color", Color("c5d5dc"))
     info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    body.add_child(info_label)
+    text_box.add_child(info_label)
 
     fit_label = Label.new()
     fit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     fit_label.add_theme_font_size_override("font_size", 9)
     fit_label.add_theme_color_override("font_color", Color("ffc857"))
     fit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    body.add_child(fit_label)
+    text_box.add_child(fit_label)
 
     set_player({})
 
@@ -85,6 +98,8 @@ func set_empty_message(name_text: String, info_text: String, status_text = "") -
     player_data = {}
     player_id = -1
     effective_rating = -1
+    if portrait != null:
+        portrait.setup({})
     fit_text = str(status_text)
     name_label.text = name_text
     info_label.text = info_text
@@ -124,6 +139,8 @@ func _make_style(background: Color, border: Color, width: int) -> StyleBoxFlat:
 func set_player(player: Dictionary, calculated_rating = -1, calculated_fit_text = "") -> void:
     player_data = player.duplicate(true)
     player_id = int(player_data.get("id", -1))
+    if portrait != null:
+        portrait.setup(player_data)
     effective_rating = int(calculated_rating)
     fit_text = str(calculated_fit_text)
     if player_id < 0:
@@ -140,9 +157,9 @@ func set_player(player: Dictionary, calculated_rating = -1, calculated_fit_text 
     var base_rating = int(player_data.get("rating", 0))
     name_label.text = surname
     if effective_rating >= 0 and effective_rating != base_rating:
-        info_label.text = "%s  %d → %d" % [player_data.get("position", "?"), base_rating, effective_rating]
+        info_label.text = "%s  %d → %d · %d%%" % [player_data.get("position", "?"), base_rating, effective_rating, int(player_data.get("condition", 100))]
     else:
-        info_label.text = "%s  %d" % [player_data.get("position", "?"), base_rating]
+        info_label.text = "%s  %d · %d%%" % [player_data.get("position", "?"), base_rating, int(player_data.get("condition", 100))]
     fit_label.text = fit_text
     mouse_default_cursor_shape = Control.CURSOR_MOVE if editor_mode else Control.CURSOR_DRAG
     var secondaries: Array = player_data.get("secondary", [])

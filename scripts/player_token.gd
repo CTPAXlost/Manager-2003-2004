@@ -70,7 +70,7 @@ func refresh() -> void:
     if not secondaries.is_empty():
         positions += " / " + ", ".join(secondaries)
     main_label.text = name if not compact else _surname(name)
-    details_label.text = "%s · рейтинг %d" % [positions, int(player_data.get("rating", 0))]
+    details_label.text = "%s · рейтинг %d · форма %d%%" % [positions, int(player_data.get("rating", 0)), int(player_data.get("condition", 100))]
     tooltip_text = "%s\nОсновная: %s\nДополнительные: %s\nЗажмите карточку и перетащите на поле" % [
         name,
         primary,

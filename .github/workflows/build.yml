@@ -92,6 +92,13 @@ jobs:
             --export-release "Windows" \
             "$(pwd)/build/windows/${EXPORT_NAME}.exe"
 
+      - name: Добавить установщик Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "tools/УСТАНОВИТЬ_ИГРУ.cmd" build/windows/
+          cp "tools/УСТАНОВИТЬ_ИГРУ.ps1" build/windows/
+
       - name: Упаковать Windows
         shell: bash
         run: |
