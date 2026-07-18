@@ -15,7 +15,7 @@ func setup(data: Dictionary) -> void:
     var portrait_path := _custom_portrait_path()
     if not portrait_path.is_empty() and ResourceLoader.exists(portrait_path):
         portrait_texture = load(portrait_path)
-        custom_minimum_size = Vector2(74, 96)
+        custom_minimum_size = Vector2(62, 82)
     else:
         custom_minimum_size = Vector2(50, 58)
     size = custom_minimum_size
@@ -49,6 +49,12 @@ func _custom_portrait_path() -> String:
         "Santiago Solari": "res://assets/portraits/real_madrid/santiago_solari.png",
         "Raúl": "res://assets/portraits/real_madrid/raul.png",
         "Ronaldo": "res://assets/portraits/real_madrid/ronaldo.png",
+        "César Sánchez": "res://assets/portraits/real_madrid/cesar_sanchez.png",
+        "Raúl Bravo": "res://assets/portraits/real_madrid/raul_bravo.png",
+        "Guti": "res://assets/portraits/real_madrid/guti.png",
+        "Albert Celades": "res://assets/portraits/real_madrid/albert_celades.png",
+        "Javier Portillo": "res://assets/portraits/real_madrid/javier_portillo.png",
+        "Borja Fernández": "res://assets/portraits/real_madrid/borja_fernandez.png",
     }
     return map.get(name, "")
 

@@ -110,7 +110,7 @@ def validate_features() -> None:
 
     assert 'config/version="1.2.5"' in project
     assert "textures/vram_compression/import_etc2_astc=true" in project
-    assert "Версия v1.2.5" in script
+    assert "Версия v1.2.6" in script
 
     match_squad = function_body(script, "_match_squad")
     assert 'squad_level", "first")) == "first"' in match_squad
@@ -167,6 +167,8 @@ def validate_features() -> None:
         "francisco_pavon.png", "michel_salgado.png", "david_beckham.png",
         "zinedine_zidane.png", "esteban_cambiasso.png", "luis_figo.png",
         "santiago_solari.png", "raul.png", "ronaldo.png",
+        "cesar_sanchez.png", "raul_bravo.png", "guti.png",
+        "albert_celades.png", "javier_portillo.png", "borja_fernandez.png",
     ]
     for filename in required_portraits:
         assert (portrait_dir / filename).exists(), filename
@@ -180,7 +182,7 @@ def validate_features() -> None:
     assert "build/windows/УСТАНОВИТЬ_ИГРУ.ps1" in workflow
     assert (ROOT / "tools" / "INSTALL_GAME.cmd").exists()
     assert (ROOT / "tools" / "INSTALL_GAME.ps1").exists()
-    print("Функции v1.2.5: статистика, указания, тактика, портреты и новые лиги — OK")
+    print("Функции v1.2.6: статистика, указания, тактика, портреты и новые лиги — OK")
 
 
 def validate_south_america(data: dict) -> None:
@@ -270,4 +272,4 @@ if __name__ == "__main__":
     validate_index_performance(database)
     validate_strengths(database, players_by_id)
     validate_match_balance()
-    print("Проверки проекта v1.2.5 завершены успешно.")
+    print("Проверки проекта v1.2.6 завершены успешно.")

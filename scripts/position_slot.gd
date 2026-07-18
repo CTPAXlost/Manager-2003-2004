@@ -38,7 +38,7 @@ func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(140, 170)
+    custom_minimum_size = Vector2(116, 148)
     size = custom_minimum_size
     clip_contents = true
     mouse_filter = Control.MOUSE_FILTER_STOP
@@ -71,7 +71,7 @@ func setup(data: Dictionary) -> void:
     title_label.text = role_name
     title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    title_label.add_theme_font_size_override("font_size", 14)
+    title_label.add_theme_font_size_override("font_size", 12)
     title_label.add_theme_color_override("font_color", Color("efd382"))
     title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     top_row.add_child(title_label)
@@ -87,7 +87,7 @@ func setup(data: Dictionary) -> void:
     top_row.add_child(action_button)
 
     portrait_holder = CenterContainer.new()
-    portrait_holder.custom_minimum_size = Vector2(76, 98)
+    portrait_holder.custom_minimum_size = Vector2(66, 84)
     portrait_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     portrait_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
     body.add_child(portrait_holder)
@@ -100,7 +100,7 @@ func setup(data: Dictionary) -> void:
     name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
     name_label.clip_text = true
-    name_label.add_theme_font_size_override("font_size", 11)
+    name_label.add_theme_font_size_override("font_size", 10)
     name_label.add_theme_color_override("font_color", Color("edf6fb"))
     name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     body.add_child(name_label)
@@ -109,7 +109,7 @@ func setup(data: Dictionary) -> void:
     info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     info_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
     info_label.clip_text = true
-    info_label.add_theme_font_size_override("font_size", 10)
+    info_label.add_theme_font_size_override("font_size", 9)
     info_label.add_theme_color_override("font_color", Color("d8c17b"))
     info_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     body.add_child(info_label)
@@ -118,7 +118,7 @@ func setup(data: Dictionary) -> void:
     fit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     fit_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
     fit_label.clip_text = true
-    fit_label.add_theme_font_size_override("font_size", 9)
+    fit_label.add_theme_font_size_override("font_size", 8)
     fit_label.add_theme_color_override("font_color", Color("e0e9ef"))
     fit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     body.add_child(fit_label)
