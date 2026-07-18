@@ -6,10 +6,18 @@ extends Control
 # были узнаваемы визуально, а не выглядели как случайные аватары.
 
 var player_data: Dictionary = {}
+var portrait_texture: Texture2D
+
 
 func setup(data: Dictionary) -> void:
     player_data = data.duplicate(true)
-    custom_minimum_size = Vector2(50, 58)
+    portrait_texture = null
+    var portrait_path := _custom_portrait_path()
+    if not portrait_path.is_empty() and ResourceLoader.exists(portrait_path):
+        portrait_texture = load(portrait_path)
+        custom_minimum_size = Vector2(74, 96)
+    else:
+        custom_minimum_size = Vector2(50, 58)
     size = custom_minimum_size
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     queue_redraw()
@@ -23,6 +31,26 @@ func _seed() -> int:
 
 func _parse_color(hex: String) -> Color:
     return Color(hex)
+
+func _custom_portrait_path() -> String:
+    var name := str(player_data.get("name", ""))
+    if name.is_empty():
+        return ""
+    var map := {
+        "Iker Casillas": "res://assets/portraits/real_madrid/iker_casillas.png",
+        "Roberto Carlos": "res://assets/portraits/real_madrid/roberto_carlos.png",
+        "Iván Helguera": "res://assets/portraits/real_madrid/ivan_helguera.png",
+        "Francisco Pavón": "res://assets/portraits/real_madrid/francisco_pavon.png",
+        "Míchel Salgado": "res://assets/portraits/real_madrid/michel_salgado.png",
+        "David Beckham": "res://assets/portraits/real_madrid/david_beckham.png",
+        "Zinedine Zidane": "res://assets/portraits/real_madrid/zinedine_zidane.png",
+        "Esteban Cambiasso": "res://assets/portraits/real_madrid/esteban_cambiasso.png",
+        "Luís Figo": "res://assets/portraits/real_madrid/luis_figo.png",
+        "Santiago Solari": "res://assets/portraits/real_madrid/santiago_solari.png",
+        "Raúl": "res://assets/portraits/real_madrid/raul.png",
+        "Ronaldo": "res://assets/portraits/real_madrid/ronaldo.png",
+    }
+    return map.get(name, "")
 
 func _team_palette() -> Dictionary:
     var club = str(player_data.get("club_name", ""))
@@ -126,6 +154,10 @@ func _player_profile() -> Dictionary:
 
 func _draw() -> void:
     if player_data.is_empty() or int(player_data.get("id", -1)) < 0:
+        return
+
+    if portrait_texture != null:
+        draw_texture_rect(portrait_texture, Rect2(Vector2.ZERO, size), false)
         return
 
     var pal = _team_palette()

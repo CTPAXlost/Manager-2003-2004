@@ -255,7 +255,7 @@ func _show_main_menu() -> void:
     exit.pressed.connect(get_tree().quit)
     box.add_child(exit)
 
-    var version = _label("Версия v1.2.0 · Godot 4", 12, colors.muted)
+    var version = _label("Версия v1.2.5 · Godot 4", 12, colors.muted)
     version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     box.add_child(version)
 

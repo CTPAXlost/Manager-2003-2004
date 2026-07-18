@@ -38,7 +38,7 @@ func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(132, 156)
+    custom_minimum_size = Vector2(140, 170)
     size = custom_minimum_size
     clip_contents = true
     mouse_filter = Control.MOUSE_FILTER_STOP
@@ -87,7 +87,7 @@ func setup(data: Dictionary) -> void:
     top_row.add_child(action_button)
 
     portrait_holder = CenterContainer.new()
-    portrait_holder.custom_minimum_size = Vector2(68, 76)
+    portrait_holder.custom_minimum_size = Vector2(76, 98)
     portrait_holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     portrait_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
     body.add_child(portrait_holder)

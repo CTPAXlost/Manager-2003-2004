@@ -108,9 +108,9 @@ def validate_features() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     portrait = (ROOT / "scripts" / "player_portrait.gd").read_text(encoding="utf-8")
 
-    assert 'config/version="1.2.0"' in project
+    assert 'config/version="1.2.5"' in project
     assert "textures/vram_compression/import_etc2_astc=true" in project
-    assert "Версия v1.2.0" in script
+    assert "Версия v1.2.5" in script
 
     match_squad = function_body(script, "_match_squad")
     assert 'squad_level", "first")) == "first"' in match_squad
@@ -161,6 +161,16 @@ def validate_features() -> None:
         "Zinedine Zidane",
     ]:
         assert fragment in portrait, fragment
+    portrait_dir = ROOT / "assets" / "portraits" / "real_madrid"
+    required_portraits = [
+        "iker_casillas.png", "roberto_carlos.png", "ivan_helguera.png",
+        "francisco_pavon.png", "michel_salgado.png", "david_beckham.png",
+        "zinedine_zidane.png", "esteban_cambiasso.png", "luis_figo.png",
+        "santiago_solari.png", "raul.png", "ronaldo.png",
+    ]
+    for filename in required_portraits:
+        assert (portrait_dir / filename).exists(), filename
+    assert "func _custom_portrait_path" in portrait and "draw_texture_rect" in portrait
     assert "competition_player_stats" in script
     assert "func _repair_competition_statistics" in script
     assert "func _migrate_legacy_condition_values" in script
@@ -170,7 +180,7 @@ def validate_features() -> None:
     assert "build/windows/УСТАНОВИТЬ_ИГРУ.ps1" in workflow
     assert (ROOT / "tools" / "INSTALL_GAME.cmd").exists()
     assert (ROOT / "tools" / "INSTALL_GAME.ps1").exists()
-    print("Функции v1.2.0: статистика, указания, тактика, портреты и новые лиги — OK")
+    print("Функции v1.2.5: статистика, указания, тактика, портреты и новые лиги — OK")
 
 
 def validate_south_america(data: dict) -> None:
@@ -260,4 +270,4 @@ if __name__ == "__main__":
     validate_index_performance(database)
     validate_strengths(database, players_by_id)
     validate_match_balance()
-    print("Проверки проекта v1.2.0 завершены успешно.")
+    print("Проверки проекта v1.2.5 завершены успешно.")
