@@ -149,7 +149,18 @@ def validate_features() -> None:
         assert fragment in script, fragment
 
     assert "class_name PlayerPortrait" in portrait and "draw_colored_polygon" in portrait
-    assert "процедурный портрет" in portrait and "ThemeDB.fallback_font" in portrait
+    # Проверяем текущую систему компактных индивидуальных портретов, а не
+    # устаревшие строки из ранней процедурной реализации.
+    for fragment in [
+        "func _premium_profile",
+        "func _player_profile",
+        "func _draw_portrait",
+        "Реал Мадрид",
+        "Барселона",
+        "Edgar Davids",
+        "Zinedine Zidane",
+    ]:
+        assert fragment in portrait, fragment
     assert "competition_player_stats" in script
     assert "func _repair_competition_statistics" in script
     assert "func _migrate_legacy_condition_values" in script
