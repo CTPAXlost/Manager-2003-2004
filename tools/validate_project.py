@@ -23,12 +23,13 @@ SCRIPT_PATHS = [
     ROOT / "scripts" / "player_portrait.gd",
 ]
 POSITIONS = {"GK", "RB", "RWB", "LB", "LWB", "CB", "DM", "CM", "AM", "RM", "LM", "RW", "LW", "CF", "ST"}
-EXPECTED = {"eng1", "eng2", "fra1", "fra2", "ger1", "ger2", "ned1", "ned2", "rus1", "rus2", "ita1", "ita2", "esp1", "esp2", "por1", "por2"}
+EXPECTED = {"eng1", "eng2", "fra1", "fra2", "ger1", "ger2", "ned1", "ned2", "rus1", "rus2", "ita1", "ita2", "esp1", "esp2", "por1", "por2", "bra1", "bra2", "arg1", "arg2"}
 EXPECTED_COUNTS = {
     "eng1": 20, "eng2": 24, "fra1": 20, "fra2": 20,
     "ger1": 18, "ger2": 18, "ned1": 18, "ned2": 19,
     "rus1": 16, "rus2": 22, "ita1": 18, "ita2": 24,
     "esp1": 20, "esp2": 22, "por1": 18, "por2": 18,
+    "bra1": 24, "bra2": 24, "arg1": 20, "arg2": 20,
 }
 
 
@@ -52,7 +53,7 @@ def validate_database() -> tuple[dict, dict[int, dict]]:
     teams = data["teams"]
     players = data["players"]
     leagues = data["leagues"]
-    assert str(data.get("meta", {}).get("version")) == "1.1.2"
+    assert str(data.get("meta", {}).get("version")) == "1.2.0"
     assert int(data.get("meta", {}).get("players_count", -1)) == len(players)
     assert {league["id"] for league in leagues} == EXPECTED
     counts = Counter(team["competition"] for team in teams)
@@ -86,8 +87,8 @@ def validate_database() -> tuple[dict, dict[int, dict]]:
         assert player.get("squad_level") in {"first", "reserve", "academy"}
         levels[str(player["squad_level"])] += 1
 
-    assert len(teams) == 315 and len(players) >= 10000
-    assert levels["academy"] >= 1500 and levels["reserve"] >= 2000 and levels["first"] >= 6000
+    assert len(teams) == 403 and len(players) >= 12900
+    assert levels["academy"] >= 2000 and levels["reserve"] >= 2800 and levels["first"] >= 8000
     print(f"База: {len(leagues)} лиг, {len(teams)} клубов, {len(players)} уникальных игроков — OK")
     print("Уровни составов:", dict(levels))
     return data, by_id
@@ -107,9 +108,9 @@ def validate_features() -> None:
     workflow = WORKFLOW_PATH.read_text(encoding="utf-8")
     portrait = (ROOT / "scripts" / "player_portrait.gd").read_text(encoding="utf-8")
 
-    assert 'config/version="1.1.2"' in project
+    assert 'config/version="1.2.0"' in project
     assert "textures/vram_compression/import_etc2_astc=true" in project
-    assert "Версия v1.1.2" in script
+    assert "Версия v1.2.0" in script
 
     match_squad = function_body(script, "_match_squad")
     assert 'squad_level", "first")) == "first"' in match_squad
@@ -138,11 +139,17 @@ def validate_features() -> None:
         "func _render_academy",
         "func _loan_with_option_from_dialog",
         "func _detach_player_from_all_clubs",
+        "func _show_player_instruction_menu",
+        "func _instruction_event_factor",
+        "func _competition_fixtures_for_stats",
+        '"player_instructions"',
+        '"Бить с любой дистанции"',
     ]
     for fragment in required:
         assert fragment in script, fragment
 
-    assert "class_name PlayerPortrait" in portrait and "draw_colored_polygon" in portrait and "карикатурных" in portrait
+    assert "class_name PlayerPortrait" in portrait and "draw_colored_polygon" in portrait
+    assert "процедурный портрет" in portrait and "ThemeDB.fallback_font" in portrait
     assert "competition_player_stats" in script
     assert "func _repair_competition_statistics" in script
     assert "func _migrate_legacy_condition_values" in script
@@ -152,7 +159,22 @@ def validate_features() -> None:
     assert "build/windows/УСТАНОВИТЬ_ИГРУ.ps1" in workflow
     assert (ROOT / "tools" / "INSTALL_GAME.cmd").exists()
     assert (ROOT / "tools" / "INSTALL_GAME.ps1").exists()
-    print("Функции v1.1.2: состав, статистика лиг, баланс, усталость, отчёт, кубки и переходы — OK")
+    print("Функции v1.2.0: статистика, указания, тактика, портреты и новые лиги — OK")
+
+
+def validate_south_america(data: dict) -> None:
+    leagues = {league["id"]: league for league in data["leagues"]}
+    for league_id in ("bra1", "bra2", "arg1", "arg2"):
+        assert league_id in leagues
+    teams = data["teams"]
+    assert len([team for team in teams if team["competition"] == "bra1"]) == 24
+    assert len([team for team in teams if team["competition"] == "bra2"]) == 24
+    assert len([team for team in teams if team["competition"] == "arg1"]) == 20
+    assert len([team for team in teams if team["competition"] == "arg2"]) == 20
+    names = {team["name"] for team in teams}
+    for required in ("Крузейро", "Сантос", "Палмейрас", "Бока Хуниорс", "Ривер Плейт"):
+        assert required in names, required
+    print("Южная Америка: 4 дивизиона и 88 клубов — OK")
 
 
 def validate_index_performance(data: dict) -> None:
@@ -223,7 +245,8 @@ if __name__ == "__main__":
     validate_gdscript()
     database, players_by_id = validate_database()
     validate_features()
+    validate_south_america(database)
     validate_index_performance(database)
     validate_strengths(database, players_by_id)
     validate_match_balance()
-    print("Проверки проекта v1.1.2 завершены успешно.")
+    print("Проверки проекта v1.2.0 завершены успешно.")

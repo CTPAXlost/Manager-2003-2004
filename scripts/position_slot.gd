@@ -4,6 +4,7 @@ extends PanelContainer
 signal player_dropped(player_id: int, slot_id: String)
 signal slot_pressed(slot_id: String)
 signal slot_moved(slot_id: String, normalized_position: Vector2)
+signal player_context_requested(player_id: int, slot_id: String, screen_position: Vector2)
 
 var slot_id = ""
 var role_name = ""
@@ -29,18 +30,19 @@ var press_position = Vector2.ZERO
 var editor_mode = false
 var moving_slot = false
 var is_selected = false
+var action_button: Button
 
 func setup(data: Dictionary) -> void:
     slot_id = str(data.get("id", "slot"))
     role_name = str(data.get("label", slot_id))
     accepted = data.get("accepted", [])
-    custom_minimum_size = Vector2(158, 122)
+    custom_minimum_size = Vector2(168, 124)
     mouse_filter = Control.MOUSE_FILTER_STOP
     mouse_force_pass_scroll_events = false
     mouse_default_cursor_shape = Control.CURSOR_DRAG
     focus_mode = Control.FOCUS_NONE
 
-    normal_style = _make_style(Color(0.035, 0.11, 0.12, 0.94), Color(0.18, 0.82, 0.76, 0.82), 1)
+    normal_style = _make_style(Color(0.025, 0.065, 0.09, 0.97), Color("b98a35"), 1)
     hover_style = _make_style(Color(0.055, 0.19, 0.20, 0.98), Color("40e0ff"), 2)
     warning_style = _make_style(Color(0.19, 0.105, 0.08, 0.98), Color("ffc857"), 2)
     edit_style = _make_style(Color(0.16, 0.12, 0.035, 0.98), Color("ffc857"), 2)
@@ -66,7 +68,7 @@ func setup(data: Dictionary) -> void:
     title_label.text = role_name
     title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     title_label.add_theme_font_size_override("font_size", 11)
-    title_label.add_theme_color_override("font_color", Color("7fffd4"))
+    title_label.add_theme_color_override("font_color", Color("e2bd61"))
     title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     text_box.add_child(title_label)
 
@@ -88,9 +90,20 @@ func setup(data: Dictionary) -> void:
     fit_label = Label.new()
     fit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     fit_label.add_theme_font_size_override("font_size", 9)
-    fit_label.add_theme_color_override("font_color", Color("ffc857"))
+    fit_label.add_theme_color_override("font_color", Color("d7aa48"))
     fit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     text_box.add_child(fit_label)
+
+    action_button = Button.new()
+    action_button.text = "↔"
+    action_button.tooltip_text = "Выбрать этого игрока или эту позицию для замены"
+    action_button.custom_minimum_size = Vector2(26, 28)
+    action_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    action_button.focus_mode = Control.FOCUS_NONE
+    action_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+    action_button.add_theme_font_size_override("font_size", 14)
+    action_button.pressed.connect(func(): slot_pressed.emit(slot_id))
+    body.add_child(action_button)
 
     set_player({})
 
@@ -126,6 +139,8 @@ func set_editor_mode(value: bool) -> void:
     click_armed = false
     drag_started = false
     mouse_default_cursor_shape = Control.CURSOR_MOVE if editor_mode else (Control.CURSOR_DRAG if player_id >= 0 else Control.CURSOR_POINTING_HAND)
+    if action_button != null:
+        action_button.visible = not editor_mode
     _restore_style()
     if editor_mode:
         tooltip_text = "Режим свободной схемы: зажмите карточку и переместите её в любую точку поля"
@@ -182,18 +197,27 @@ func _gui_input(event: InputEvent) -> void:
     if editor_mode:
         _editor_gui_input(event)
         return
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+        if event.pressed and player_id >= 0:
+            player_context_requested.emit(player_id, slot_id, get_global_mouse_position())
+            accept_event()
+        return
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
         if event.pressed:
             click_armed = true
             drag_started = false
             press_position = event.position
+            add_theme_stylebox_override("panel", hover_style)
+            accept_event()
         else:
             var should_click = click_armed and not drag_started
             click_armed = false
             if should_click:
                 slot_pressed.emit(slot_id)
+            _restore_style()
+            accept_event()
     elif event is InputEventMouseMotion and click_armed and not drag_started:
-        if event.position.distance_to(press_position) > 6.0 and player_id >= 0:
+        if event.position.distance_to(press_position) > 4.0 and player_id >= 0:
             drag_started = true
             click_armed = false
             force_drag(_drag_payload(), _make_drag_preview())
